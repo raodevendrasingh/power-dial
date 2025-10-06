@@ -34,7 +34,7 @@ export class KeybindingManager {
 			}
 
 		} catch (error) {
-			global.logError(`Power Dial: Failed to register keybinding (attempt ${retryCount + 1}): ${error.message}`);
+			global.log(`Power Dial: Failed to register keybinding (attempt ${retryCount + 1}): ${error.message}`);
 
 			if (retryCount < maxRetries) {
 				if (this._keybindingRetryTimeoutId) {
@@ -47,7 +47,7 @@ export class KeybindingManager {
 					return GLib.SOURCE_REMOVE;
 				});
 			} else {
-				global.logError(`Power Dial: Failed to register keybinding after ${maxRetries + 1} attempts`);
+				global.log(`Power Dial: Failed to register keybinding after ${maxRetries + 1} attempts`);
 			}
 		}
 	}
@@ -58,7 +58,7 @@ export class KeybindingManager {
 				Main.wm.removeKeybinding("shortcut");
 			}
 		} catch (error) {
-			global.logError(`Power Dial: Error removing keybinding: ${error.message}`);
+			global.log(`Power Dial: Error removing keybinding: ${error.message}`);
 		} finally {
 			this._keybindingId = null;
 		}
