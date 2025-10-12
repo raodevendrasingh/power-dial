@@ -8,7 +8,7 @@
 
 .power-dial-box .button {
 	min-height: 40px;
-	padding: 0 16px;
+	padding: 0 !important;
 	border-radius: 12px;
 	background-color: rgba(255, 255, 255, 0.06);
 	border: 1px solid transparent;
@@ -78,5 +78,21 @@
 }
 
 .power-dial-box .tile .system-status-icon {
+	color: inherit;
+}
+
+.power-option-label {
+	font-size: 16px;
+	color: inherit;
+	font-weight: 500;
+	text-align: center !important;
+}
+
+.power-option-icon-container {
+	background-color: rgba(255, 255, 255, 0.1);
+	border-radius: 2px 12px 12px 2px;
+}
+
+.power-option-icon {
 	color: inherit;
 }

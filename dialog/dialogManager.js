@@ -98,32 +98,62 @@ export class DialogManager {
 	}
 
 	_renderStackedView(box) {
+		const iconMap = {
+			"Suspend": "media-playback-pause-symbolic",
+			"Restart": "system-reboot-symbolic", 
+			"Power Off": "system-shutdown-symbolic",
+			"Log Out": "system-log-out-symbolic"
+		};
+
 		const createButton = (labelText, iconName, action, styleClass) => {
 			const button = new St.Button({
 				style_class: `button ${styleClass || ""}`,
+				style: "padding: 0;",
 				can_focus: true,
 				x_expand: true,
 			});
+			
 			const buttonBox = new St.BoxLayout({
-				style: "spacing: 12px;",
+				style: "spacing: 0; padding: 0;",
 			});
-			if (iconName) {
-				buttonBox.add_child(
-					new St.Icon({
-						icon_name: iconName,
-						icon_size: 24,
-						style_class: "system-status-icon",
-					})
-				);
-			}
-			buttonBox.add_child(
-				new St.Label({
-					text: labelText,
-					x_expand: true,
-					y_align: Clutter.ActorAlign.CENTER,
-				})
-			);
+			
+			const labelContainer = new St.BoxLayout({
+				style: "padding: 0;",
+				width: 256,
+				x_align: Clutter.ActorAlign.CENTER,
+			});
+			const powerLabel = new St.Label({
+				text: labelText,
+				y_align: Clutter.ActorAlign.CENTER,
+				x_align: Clutter.ActorAlign.CENTER,
+				style_class: "power-option-label",
+			});
+			labelContainer.add_child(powerLabel);
+			buttonBox.add_child(labelContainer);
+			
+			const iconContainer = new St.BoxLayout({
+				style_class: "power-option-icon-container",
+				width: 44,
+				height: 38,
+				x_align: Clutter.ActorAlign.CENTER,
+				y_align: Clutter.ActorAlign.CENTER,
+			});
+			const icon = new St.Icon({
+				icon_name: iconName,
+				icon_size: 20,
+				y_align: Clutter.ActorAlign.CENTER,
+				x_align: Clutter.ActorAlign.CENTER,
+				x_expand: true,
+				y_expand: true,
+				style_class: "power-option-icon",
+			});
+			iconContainer.add_child(icon);
+			
 			button.set_child(buttonBox);
+			
+			button.add_child(iconContainer);
+			iconContainer.x = 258;
+			iconContainer.y = 2;
 			button.connect("clicked", () => {
 				action();
 				this._dialog.close();
@@ -134,7 +164,7 @@ export class DialogManager {
 		box.add_child(
 			createButton(
 				"Suspend",
-				null,
+				iconMap["Suspend"],
 				this._powerActions._suspend.bind(this._powerActions),
 				"suspend-button"
 			)
@@ -142,7 +172,7 @@ export class DialogManager {
 		box.add_child(
 			createButton(
 				"Restart",
-				null,
+				iconMap["Restart"],
 				this._powerActions._reboot.bind(this._powerActions),
 				"restart-button"
 			)
@@ -150,7 +180,7 @@ export class DialogManager {
 		box.add_child(
 			createButton(
 				"Power Off",
-				null,
+				iconMap["Power Off"],
 				this._powerActions._powerOff.bind(this._powerActions),
 				"poweroff-button"
 			)
@@ -158,7 +188,7 @@ export class DialogManager {
 		box.add_child(
 			createButton(
 				"Log Out",
-				null,
+				iconMap["Log Out"],
 				this._powerActions._logout.bind(this._powerActions),
 				"logout-button"
 			)
