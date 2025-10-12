@@ -53,4 +53,32 @@ export class DisplaySettings {
 
 		return topBarIconRow;
 	}
+
+	createTiledDisplayModeRow(displayGroup) {
+		const tiledDisplayModeRow = new Adw.ComboRow({
+			title: "Tiled View Display",
+			subtitle: "Choose how tiles are displayed in tiled view",
+		});
+		displayGroup.add(tiledDisplayModeRow);
+
+		const tiledDisplayModeModel = new Gtk.StringList();
+		tiledDisplayModeModel.append("Lable Only");
+		tiledDisplayModeModel.append("Icons Only");
+		tiledDisplayModeRow.set_model(tiledDisplayModeModel);
+
+		const currentTiledDisplayMode = this._settings.get_string("tiled-display-mode");
+		if (currentTiledDisplayMode === "lable-only") {
+			tiledDisplayModeRow.set_selected(0);
+		} else if (currentTiledDisplayMode === "icons-only") {
+			tiledDisplayModeRow.set_selected(1);
+		}
+
+		tiledDisplayModeRow.connect("notify::selected", () => {
+			const selectedIndex = tiledDisplayModeRow.get_selected();
+			const selectedMode = selectedIndex === 0 ? "lable-only" : "icons-only";
+			this._settings.set_string("tiled-display-mode", selectedMode);
+		});
+
+		return tiledDisplayModeRow;
+	}
 }

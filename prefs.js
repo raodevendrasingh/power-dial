@@ -49,6 +49,7 @@ export default class PowerDialPreferences extends ExtensionPreferences {
 		});
 
 		displaySettings.createViewModeRow(displayGroup);
+		displaySettings.createTiledDisplayModeRow(displayGroup);
 		displaySettings.createTopBarIconRow(displayGroup);
 	}
 }

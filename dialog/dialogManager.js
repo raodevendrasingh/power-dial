@@ -199,6 +199,8 @@ export class DialogManager {
 		this._tiles = [];
 		this._currentTileIndex = 0;
 
+		const tiledDisplayMode = this._settings.get_string("tiled-display-mode");
+
 		const createTile = (labelText, iconName, action, styleClass) => {
 			const tile = new St.Button({
 				style_class: `tile ${styleClass || ""}`,
@@ -207,18 +209,43 @@ export class DialogManager {
 				y_expand: true,
 			});
 
-			const tileBox = new St.BoxLayout({
-				style: "spacing: 10px;",
-			});
+			let tileBox;
+			
+			switch (tiledDisplayMode) {
+				case 'icons-only':
+					tileBox = new St.BoxLayout({
+						style: "spacing: 0px;",
+						x_align: Clutter.ActorAlign.CENTER,
+						y_align: Clutter.ActorAlign.CENTER,
+					});
 
-			tileBox.add_child(
-				new St.Label({
-					text: labelText,
-					x_expand: true,
-					y_align: Clutter.ActorAlign.CENTER,
-					style_class: "tile-label",
-				})
-			);
+					tileBox.add_child(
+						new St.Icon({
+							icon_name: iconName,
+							icon_size: 32,
+							x_align: Clutter.ActorAlign.CENTER,
+							y_align: Clutter.ActorAlign.CENTER,
+							style_class: "system-status-icon",
+						})
+					);
+					break;
+					
+				case 'lable-only':
+				default:
+					tileBox = new St.BoxLayout({
+						style: "spacing: 10px;",
+					});
+
+					tileBox.add_child(
+						new St.Label({
+							text: labelText,
+							x_expand: true,
+							y_align: Clutter.ActorAlign.CENTER,
+							style_class: "tile-label",
+						})
+					);
+					break;
+			}
 
 			tile.set_child(tileBox);
 			tile.connect("clicked", () => {
