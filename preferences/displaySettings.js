@@ -64,6 +64,7 @@ export class DisplaySettings {
 		const tiledDisplayModeModel = new Gtk.StringList();
 		tiledDisplayModeModel.append("Label with Icons");
 		tiledDisplayModeModel.append("Icons Only");
+		tiledDisplayModeModel.append("Label Only");
 		tiledDisplayModeRow.set_model(tiledDisplayModeModel);
 
 		const currentTiledDisplayMode = this._settings.get_string("tiled-display-mode");
@@ -71,11 +72,20 @@ export class DisplaySettings {
 			tiledDisplayModeRow.set_selected(0);
 		} else if (currentTiledDisplayMode === "icons-only") {
 			tiledDisplayModeRow.set_selected(1);
+		} else if (currentTiledDisplayMode === "label-only") {
+			tiledDisplayModeRow.set_selected(2);
 		}
 
 		tiledDisplayModeRow.connect("notify::selected", () => {
 			const selectedIndex = tiledDisplayModeRow.get_selected();
-			const selectedMode = selectedIndex === 0 ? "label-with-icons" : "icons-only";
+			let selectedMode;
+			if (selectedIndex === 0) {
+				selectedMode = "label-with-icons";
+			} else if (selectedIndex === 1) {
+				selectedMode = "icons-only";
+			} else if (selectedIndex === 2) {
+				selectedMode = "label-only";
+			}
 			this._settings.set_string("tiled-display-mode", selectedMode);
 		});
 

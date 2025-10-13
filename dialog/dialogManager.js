@@ -203,7 +203,15 @@ export class DialogManager {
 		const tiledDisplayMode = this._settings.get_string("tiled-display-mode");
 
 		const createTile = (labelText, iconName, action, styleClass) => {
-			const tileClass = tiledDisplayMode === 'icons-only' ? 'tile-icons-only' : 'tile-label-with-icons';
+			let tileClass;
+			if (tiledDisplayMode === 'icons-only') {
+				tileClass = 'tile-icons-only';
+			} else if (tiledDisplayMode === 'label-only') {
+				tileClass = 'tile-label-only';
+			} else {
+				tileClass = 'tile-label-with-icons';
+			}
+			
 			const tile = new St.Button({
 				style_class: `${tileClass} ${styleClass || ""}`,
 				can_focus: true,
@@ -228,6 +236,24 @@ export class DialogManager {
 							x_align: Clutter.ActorAlign.CENTER,
 							y_align: Clutter.ActorAlign.CENTER,
 							style_class: "system-status-icon",
+						})
+					);
+					tile.set_child(tileBox);
+					break;
+					
+				case 'label-only':
+					tileBox = new St.BoxLayout({
+						style: "spacing: 0px;",
+						x_align: Clutter.ActorAlign.CENTER,
+						y_align: Clutter.ActorAlign.CENTER,
+					});
+
+					tileBox.add_child(
+						new St.Label({
+							text: labelText,
+							style_class: "tile-label-only-text",
+							x_align: Clutter.ActorAlign.CENTER,
+							y_align: Clutter.ActorAlign.CENTER,
 						})
 					);
 					tile.set_child(tileBox);
