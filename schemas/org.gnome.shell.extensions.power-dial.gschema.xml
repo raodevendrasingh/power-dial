@@ -17,9 +17,9 @@
       <description>Whether to display the Power Dial icon in the top bar</description>
     </key>
     <key name="tiled-display-mode" type="s">
-      <default>'lable-only'</default>
+      <default>'label-with-icons'</default>
       <summary>Tiled view display mode</summary>
-      <description>How to display tiles in tiled view. Options: 'lable-only' or 'icons-only'.</description>
+      <description>How to display tiles in tiled view. Options: 'label-with-icons' (text with icons) or 'icons-only' (icons only).</description>
     </key>
   </schema>
 </schemalist>

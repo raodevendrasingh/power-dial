@@ -14,6 +14,13 @@ export class DialogManager {
 		this._focusTimeoutId = null;
 	}
 
+	_iconMap = {
+		"Suspend": "media-playback-pause-symbolic",
+		"Restart": "system-reboot-symbolic", 
+		"Power Off": "system-shutdown-symbolic",
+		"Log Out": "system-log-out-symbolic"
+	};
+
 	_showPowerMenu() {
 		if (this._isDialogOpen) {
 			return;
@@ -98,12 +105,6 @@ export class DialogManager {
 	}
 
 	_renderStackedView(box) {
-		const iconMap = {
-			"Suspend": "media-playback-pause-symbolic",
-			"Restart": "system-reboot-symbolic", 
-			"Power Off": "system-shutdown-symbolic",
-			"Log Out": "system-log-out-symbolic"
-		};
 
 		const createButton = (labelText, iconName, action, styleClass) => {
 			const button = new St.Button({
@@ -164,7 +165,7 @@ export class DialogManager {
 		box.add_child(
 			createButton(
 				"Suspend",
-				iconMap["Suspend"],
+				this._iconMap["Suspend"],
 				this._powerActions._suspend.bind(this._powerActions),
 				"suspend-button"
 			)
@@ -172,7 +173,7 @@ export class DialogManager {
 		box.add_child(
 			createButton(
 				"Restart",
-				iconMap["Restart"],
+				this._iconMap["Restart"],
 				this._powerActions._reboot.bind(this._powerActions),
 				"restart-button"
 			)
@@ -180,7 +181,7 @@ export class DialogManager {
 		box.add_child(
 			createButton(
 				"Power Off",
-				iconMap["Power Off"],
+				this._iconMap["Power Off"],
 				this._powerActions._powerOff.bind(this._powerActions),
 				"poweroff-button"
 			)
@@ -188,7 +189,7 @@ export class DialogManager {
 		box.add_child(
 			createButton(
 				"Log Out",
-				iconMap["Log Out"],
+				this._iconMap["Log Out"],
 				this._powerActions._logout.bind(this._powerActions),
 				"logout-button"
 			)
@@ -202,8 +203,9 @@ export class DialogManager {
 		const tiledDisplayMode = this._settings.get_string("tiled-display-mode");
 
 		const createTile = (labelText, iconName, action, styleClass) => {
+			const tileClass = tiledDisplayMode === 'icons-only' ? 'tile-icons-only' : 'tile-label-with-icons';
 			const tile = new St.Button({
-				style_class: `tile ${styleClass || ""}`,
+				style_class: `${tileClass} ${styleClass || ""}`,
 				can_focus: true,
 				x_expand: true,
 				y_expand: true,
@@ -222,7 +224,7 @@ export class DialogManager {
 					tileBox.add_child(
 						new St.Icon({
 							icon_name: iconName,
-							icon_size: 32,
+							icon_size: 24,
 							x_align: Clutter.ActorAlign.CENTER,
 							y_align: Clutter.ActorAlign.CENTER,
 							style_class: "system-status-icon",
@@ -230,24 +232,44 @@ export class DialogManager {
 					);
 					break;
 					
-				case 'lable-only':
+				case 'label-with-icons':
 				default:
-					tileBox = new St.BoxLayout({
-						style: "spacing: 10px;",
-					});
+					tileBox = new St.BoxLayout();
 
-					tileBox.add_child(
-						new St.Label({
-							text: labelText,
-							x_expand: true,
-							y_align: Clutter.ActorAlign.CENTER,
-							style_class: "tile-label",
-						})
-					);
+					const labelContainer = new St.BoxLayout();
+					
+					const powerLabel = new St.Label({
+						text: labelText,
+						style_class: "tile-label",
+					});
+					labelContainer.add_child(powerLabel);
+					tileBox.add_child(labelContainer);
+
+					const iconContainer = new St.BoxLayout({
+						style_class: "power-option-icon-container-tile",
+						width: 142,
+						height: 40,
+						x_align: Clutter.ActorAlign.CENTER,
+						y_align: Clutter.ActorAlign.CENTER,
+					});
+					const icon = new St.Icon({
+						icon_name: iconName,
+						icon_size: 24,
+						y_align: Clutter.ActorAlign.CENTER,
+						x_align: Clutter.ActorAlign.CENTER,
+						x_expand: true,
+						y_expand: true,
+						style_class: "power-option-icon",
+					});
+					iconContainer.add_child(icon);
+					
+					tile.set_child(tileBox);
+					tile.add_child(labelContainer);
+					tile.add_child(iconContainer);
+					iconContainer.x = 2;
+					iconContainer.y = 2;
 					break;
 			}
-
-			tile.set_child(tileBox);
 			tile.connect("clicked", () => {
 				action();
 				this._dialog.close();
@@ -310,7 +332,7 @@ export class DialogManager {
 		firstRow.add_child(
 			createTile(
 				"Suspend",
-				"media-playback-pause-symbolic",
+				this._iconMap["Suspend"],
 				this._powerActions._suspend.bind(this._powerActions),
 				"suspend-tile"
 			)
@@ -318,7 +340,7 @@ export class DialogManager {
 		firstRow.add_child(
 			createTile(
 				"Restart",
-				"system-reboot-symbolic",
+				this._iconMap["Restart"],
 				this._powerActions._reboot.bind(this._powerActions),
 				"restart-tile"
 			)
@@ -327,7 +349,7 @@ export class DialogManager {
 		secondRow.add_child(
 			createTile(
 				"Power Off",
-				"system-shutdown-symbolic",
+				this._iconMap["Power Off"],
 				this._powerActions._powerOff.bind(this._powerActions),
 				"poweroff-tile"
 			)
@@ -335,7 +357,7 @@ export class DialogManager {
 		secondRow.add_child(
 			createTile(
 				"Log Out",
-				"system-log-out-symbolic",
+				this._iconMap["Log Out"],
 				this._powerActions._logout.bind(this._powerActions),
 				"logout-tile"
 			)
