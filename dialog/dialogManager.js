@@ -224,12 +224,13 @@ export class DialogManager {
 					tileBox.add_child(
 						new St.Icon({
 							icon_name: iconName,
-							icon_size: 24,
+							icon_size: 30,
 							x_align: Clutter.ActorAlign.CENTER,
 							y_align: Clutter.ActorAlign.CENTER,
 							style_class: "system-status-icon",
 						})
 					);
+					tile.set_child(tileBox);
 					break;
 					
 				case 'label-with-icons':
