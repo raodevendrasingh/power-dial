@@ -3,6 +3,7 @@ import Gtk from "gi://Gtk";
 import { ExtensionPreferences } from "resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js";
 import { ShortcutSettings } from "./preferences/shortcutSettings.js";
 import { DisplaySettings } from "./preferences/displaySettings.js";
+import { PowerOptions } from "./preferences/powerOptions.js";
 
 export default class PowerDialPreferences extends ExtensionPreferences {
 	fillPreferencesWindow(window) {
@@ -24,10 +25,17 @@ export default class PowerDialPreferences extends ExtensionPreferences {
 		});
 		page.add(displayGroup);
 
+		const powerGroup = new Adw.PreferencesGroup({
+			title: "Power Options",
+			description: "Configure confirmation behavior for power actions",
+		});
+		page.add(powerGroup);
+
 		const settings = this.getSettings();
 
 		const shortcutSettings = new ShortcutSettings(settings);
 		const displaySettings = new DisplaySettings(settings);
+		const powerOptions = new PowerOptions(settings);
 
 		const shortcutRow = new Adw.ActionRow({
 			title: "Power Dial Shortcut",
@@ -51,5 +59,9 @@ export default class PowerDialPreferences extends ExtensionPreferences {
 		displaySettings.createViewModeRow(displayGroup);
 		displaySettings.createTiledDisplayModeRow(displayGroup);
 		displaySettings.createTopBarIconRow(displayGroup);
+
+		powerOptions.createRestartConfirmationRow(powerGroup);
+		powerOptions.createPowerOffConfirmationRow(powerGroup);
+		powerOptions.createLogoutConfirmationRow(powerGroup);
 	}
 }

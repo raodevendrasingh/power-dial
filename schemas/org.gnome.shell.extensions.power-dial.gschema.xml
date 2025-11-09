@@ -21,5 +21,20 @@
       <summary>Tiled view display mode</summary>
       <description>How to display tiles in tiled view. Options: 'label-with-icons' (text with icons), 'icons-only' (icons only), or 'label-only' (labels only).</description>
     </key>
+    <key name="restart-confirmation" type="s">
+      <default>'confirm'</default>
+      <summary>Restart confirmation mode</summary>
+      <description>Whether to show confirmation before restart. Options: 'confirm' (show dialog) or 'immediate' (execute immediately).</description>
+    </key>
+    <key name="poweroff-confirmation" type="s">
+      <default>'confirm'</default>
+      <summary>Power off confirmation mode</summary>
+      <description>Whether to show confirmation before power off. Options: 'confirm' (show dialog) or 'immediate' (execute immediately).</description>
+    </key>
+    <key name="logout-confirmation" type="s">
+      <default>'confirm'</default>
+      <summary>Logout confirmation mode</summary>
+      <description>Whether to show confirmation before logout. Options: 'confirm' (show dialog) or 'immediate' (execute immediately).</description>
+    </key>
   </schema>
 </schemalist>

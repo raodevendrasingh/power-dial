@@ -166,7 +166,7 @@ export class DialogManager {
 			createButton(
 				"Suspend",
 				this._iconMap["Suspend"],
-				this._powerActions._suspend.bind(this._powerActions),
+				this._powerActions.suspend.bind(this._powerActions),
 				"suspend-button"
 			)
 		);
@@ -174,7 +174,7 @@ export class DialogManager {
 			createButton(
 				"Restart",
 				this._iconMap["Restart"],
-				this._powerActions._reboot.bind(this._powerActions),
+				this._powerActions.reboot.bind(this._powerActions),
 				"restart-button"
 			)
 		);
@@ -182,7 +182,7 @@ export class DialogManager {
 			createButton(
 				"Power Off",
 				this._iconMap["Power Off"],
-				this._powerActions._powerOff.bind(this._powerActions),
+				this._powerActions.powerOff.bind(this._powerActions),
 				"poweroff-button"
 			)
 		);
@@ -190,7 +190,7 @@ export class DialogManager {
 			createButton(
 				"Log Out",
 				this._iconMap["Log Out"],
-				this._powerActions._logout.bind(this._powerActions),
+				this._powerActions.logout.bind(this._powerActions),
 				"logout-button"
 			)
 		);
@@ -360,7 +360,7 @@ export class DialogManager {
 			createTile(
 				"Suspend",
 				this._iconMap["Suspend"],
-				this._powerActions._suspend.bind(this._powerActions),
+				this._powerActions.suspend.bind(this._powerActions),
 				"suspend-tile"
 			)
 		);
@@ -368,7 +368,7 @@ export class DialogManager {
 			createTile(
 				"Restart",
 				this._iconMap["Restart"],
-				this._powerActions._reboot.bind(this._powerActions),
+				this._powerActions.reboot.bind(this._powerActions),
 				"restart-tile"
 			)
 		);
@@ -377,7 +377,7 @@ export class DialogManager {
 			createTile(
 				"Power Off",
 				this._iconMap["Power Off"],
-				this._powerActions._powerOff.bind(this._powerActions),
+				this._powerActions.powerOff.bind(this._powerActions),
 				"poweroff-tile"
 			)
 		);
@@ -385,7 +385,7 @@ export class DialogManager {
 			createTile(
 				"Log Out",
 				this._iconMap["Log Out"],
-				this._powerActions._logout.bind(this._powerActions),
+				this._powerActions.logout.bind(this._powerActions),
 				"logout-tile"
 			)
 		);

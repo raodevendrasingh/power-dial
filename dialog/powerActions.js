@@ -2,53 +2,8 @@ import Gio from "gi://Gio";
 import GLib from "gi://GLib";
 
 export class PowerActions {
-	_logout() {
-		Gio.DBus.session.call(
-			"org.gnome.SessionManager",
-			"/org/gnome/SessionManager",
-			"org.gnome.SessionManager",
-			"Logout",
-			new GLib.Variant("(u)", [0]),
-			null,
-			Gio.DBusCallFlags.NONE,
-			-1,
-			null,
-			null
-		);
-	}
-
-	_suspend() {
-		this._callLogind("Suspend", true);
-	}
-
-	_reboot() {
-		Gio.DBus.session.call(
-			"org.gnome.SessionManager",
-			"/org/gnome/SessionManager",
-			"org.gnome.SessionManager",
-			"Reboot",
-			null,
-			null,
-			Gio.DBusCallFlags.NONE,
-			-1,
-			null,
-			null
-		);
-	}
-
-	_powerOff() {
-		Gio.DBus.session.call(
-			"org.gnome.SessionManager",
-			"/org/gnome/SessionManager",
-			"org.gnome.SessionManager",
-			"Shutdown",
-			null,
-			null,
-			Gio.DBusCallFlags.NONE,
-			-1,
-			null,
-			null
-		);
+	constructor(settings) {
+		this._settings = settings;
 	}
 
 	_callLogind(method, interactive) {
@@ -64,5 +19,69 @@ export class PowerActions {
 			null,
 			null
 		);
+	}
+
+	logout() {
+		const confirmationMode = this._settings.get_string("logout-confirmation");
+		const mode = confirmationMode === "immediate" ? 2 : 0;
+		
+		Gio.DBus.session.call(
+			"org.gnome.SessionManager",
+			"/org/gnome/SessionManager",
+			"org.gnome.SessionManager",
+			"Logout",
+			new GLib.Variant("(u)", [mode]),
+			null,
+			Gio.DBusCallFlags.NONE,
+			-1,
+			null,
+			null
+		);
+	}
+
+	reboot() {
+		const confirmationMode = this._settings.get_string("restart-confirmation");
+		
+		if (confirmationMode === "immediate") {
+			this._callLogind("Reboot", false);
+		} else {
+			Gio.DBus.session.call(
+				"org.gnome.SessionManager",
+				"/org/gnome/SessionManager",
+				"org.gnome.SessionManager",
+				"Reboot",
+				null,
+				null,
+				Gio.DBusCallFlags.NONE,
+				-1,
+				null,
+				null
+			);
+		}
+	}
+
+	powerOff() {
+		const confirmationMode = this._settings.get_string("poweroff-confirmation");
+		
+		if (confirmationMode === "immediate") {
+			this._callLogind("PowerOff", false);
+		} else {
+			Gio.DBus.session.call(
+				"org.gnome.SessionManager",
+				"/org/gnome/SessionManager",
+				"org.gnome.SessionManager",
+				"Shutdown",
+				null,
+				null,
+				Gio.DBusCallFlags.NONE,
+				-1,
+				null,
+				null
+			);
+		}
+	}
+
+	suspend() {
+		this._callLogind("Suspend", true);
 	}
 }
