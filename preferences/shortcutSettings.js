@@ -19,6 +19,7 @@ export class ShortcutSettings {
 
 		let formatted = shortcut
 			.replace(/<Super>/g, "Super + ")
+			.replace(/<Meta>/g, "Cmd + ")
 			.replace(/<Primary>/g, "Ctrl + ")
 			.replace(/<Ctrl>/g, "Ctrl + ")
 			.replace(/<Alt>/g, "Alt + ")
@@ -128,6 +129,12 @@ export class ShortcutSettings {
 					return true;
 				}
 
+				// Only capture shortcut when a non-modifier key is pressed
+				// This allows users to press multiple modifiers (Alt+Shift+Ctrl, etc.)
+				if (this._isModifierKey(keyval)) {
+					return true;
+				}
+
 				const shortcut = this._buildShortcutString(keyval, state);
 
 				if (shortcut && this._validateShortcut(shortcut)) {
@@ -145,12 +152,25 @@ export class ShortcutSettings {
 		dialog.grab_focus();
 	}
 
+	_isModifierKey(keyval) {
+		const modifierKeys = [
+			Gdk.KEY_Control_L, Gdk.KEY_Control_R,
+			Gdk.KEY_Shift_L, Gdk.KEY_Shift_R,
+			Gdk.KEY_Alt_L, Gdk.KEY_Alt_R,
+			Gdk.KEY_Super_L, Gdk.KEY_Super_R,
+			Gdk.KEY_Meta_L, Gdk.KEY_Meta_R,
+			Gdk.KEY_Hyper_L, Gdk.KEY_Hyper_R,
+		];
+		return modifierKeys.includes(keyval);
+	}
+
 	_buildShortcutString(keyval, state) {
 		const modifiers = [];
 
 		if (state & Gdk.ModifierType.CONTROL_MASK) modifiers.push("<Primary>");
 		if (state & Gdk.ModifierType.ALT_MASK) modifiers.push("<Alt>");
 		if (state & Gdk.ModifierType.SUPER_MASK) modifiers.push("<Super>");
+		if (state & Gdk.ModifierType.META_MASK) modifiers.push("<Meta>");
 		if (state & Gdk.ModifierType.SHIFT_MASK) modifiers.push("<Shift>");
 
 		const keyName = Gdk.keyval_name(keyval);
