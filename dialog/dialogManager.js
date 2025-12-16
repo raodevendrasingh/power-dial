@@ -15,10 +15,12 @@ export class DialogManager {
 	}
 
 	_iconMap = {
-		"Suspend": "media-playback-pause-symbolic",
-		"Restart": "system-reboot-symbolic", 
+		Suspend: "media-playback-pause-symbolic",
+		Lock: "system-lock-screen-symbolic",
+		Restart: "system-reboot-symbolic",
 		"Power Off": "system-shutdown-symbolic",
-		"Log Out": "system-log-out-symbolic"
+		"Log Out": "system-log-out-symbolic",
+		Hibernate: "dialog-error-symbolic",
 	};
 
 	_showPowerMenu() {
@@ -51,19 +53,27 @@ export class DialogManager {
 
 		this._renderDialogView(box);
 
-		if (this._settings.get_string("view-mode") === "tiled" && this._tiles && this._tiles.length > 0) {
+		if (
+			this._settings.get_string("view-mode") === "tiled" &&
+			this._tiles &&
+			this._tiles.length > 0
+		) {
 			if (this._focusTimeoutId) {
 				GLib.source_remove(this._focusTimeoutId);
 				this._focusTimeoutId = null;
 			}
-			this._focusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 50, () => {
-				if (this._tiles[0]) {
-					this._tiles[0].grab_key_focus();
-					this._tiles[0].add_style_class_name('focused-tile');
+			this._focusTimeoutId = GLib.timeout_add(
+				GLib.PRIORITY_DEFAULT,
+				50,
+				() => {
+					if (this._tiles[0]) {
+						this._tiles[0].grab_key_focus();
+						this._tiles[0].add_style_class_name("focused-tile");
+					}
+					this._focusTimeoutId = null;
+					return GLib.SOURCE_REMOVE;
 				}
-				this._focusTimeoutId = null;
-				return GLib.SOURCE_REMOVE;
-			});
+			);
 		}
 
 		dialog.setButtons([
@@ -79,8 +89,8 @@ export class DialogManager {
 			this._dialog = null;
 			this._isDialogOpen = false;
 			if (this._tiles) {
-				this._tiles.forEach(tile => {
-					tile.remove_style_class_name('focused-tile');
+				this._tiles.forEach((tile) => {
+					tile.remove_style_class_name("focused-tile");
 				});
 			}
 			this._tiles = null;
@@ -105,7 +115,6 @@ export class DialogManager {
 	}
 
 	_renderStackedView(box) {
-
 		const createButton = (labelText, iconName, action, styleClass) => {
 			const button = new St.Button({
 				style_class: `button ${styleClass || ""}`,
@@ -113,11 +122,11 @@ export class DialogManager {
 				can_focus: true,
 				x_expand: true,
 			});
-			
+
 			const buttonBox = new St.BoxLayout({
 				style: "spacing: 0; padding: 0;",
 			});
-			
+
 			const labelContainer = new St.BoxLayout({
 				style: "padding: 0;",
 				width: 256,
@@ -131,7 +140,7 @@ export class DialogManager {
 			});
 			labelContainer.add_child(powerLabel);
 			buttonBox.add_child(labelContainer);
-			
+
 			const iconContainer = new St.BoxLayout({
 				style_class: "power-option-icon-container",
 				width: 44,
@@ -148,10 +157,17 @@ export class DialogManager {
 				y_expand: true,
 				style_class: "power-option-icon",
 			});
+
+			// Rotate Hibernate icon 90 degrees
+			if (labelText === "Hibernate") {
+				icon.set_pivot_point(0.5, 0.5);
+				icon.rotation_angle_z = 90;
+			}
+
 			iconContainer.add_child(icon);
-			
+
 			button.set_child(buttonBox);
-			
+
 			button.add_child(iconContainer);
 			iconContainer.x = 258;
 			iconContainer.y = 2;
@@ -168,6 +184,14 @@ export class DialogManager {
 				this._iconMap["Suspend"],
 				this._powerActions.suspend.bind(this._powerActions),
 				"suspend-button"
+			)
+		);
+		box.add_child(
+			createButton(
+				"Lock",
+				this._iconMap["Lock"],
+				this._powerActions.lock.bind(this._powerActions),
+				"lock-button"
 			)
 		);
 		box.add_child(
@@ -194,24 +218,35 @@ export class DialogManager {
 				"logout-button"
 			)
 		);
+		box.add_child(
+			createButton(
+				"Hibernate",
+				this._iconMap["Hibernate"],
+				() => {
+					// Placeholder - functionality to be implemented
+				},
+				"hibernate-button"
+			)
+		);
 	}
 
 	_renderTiledView(box) {
 		this._tiles = [];
 		this._currentTileIndex = 0;
 
-		const tiledDisplayMode = this._settings.get_string("tiled-display-mode");
+		const tiledDisplayMode =
+			this._settings.get_string("tiled-display-mode");
 
 		const createTile = (labelText, iconName, action, styleClass) => {
 			let tileClass;
-			if (tiledDisplayMode === 'icons-only') {
-				tileClass = 'tile-icons-only';
-			} else if (tiledDisplayMode === 'label-only') {
-				tileClass = 'tile-label-only';
+			if (tiledDisplayMode === "icons-only") {
+				tileClass = "tile-icons-only";
+			} else if (tiledDisplayMode === "label-only") {
+				tileClass = "tile-label-only";
 			} else {
-				tileClass = 'tile-label-with-icons';
+				tileClass = "tile-label-with-icons";
 			}
-			
+
 			const tile = new St.Button({
 				style_class: `${tileClass} ${styleClass || ""}`,
 				can_focus: true,
@@ -220,28 +255,34 @@ export class DialogManager {
 			});
 
 			let tileBox;
-			
+
 			switch (tiledDisplayMode) {
-				case 'icons-only':
+				case "icons-only":
 					tileBox = new St.BoxLayout({
 						style: "spacing: 0px;",
 						x_align: Clutter.ActorAlign.CENTER,
 						y_align: Clutter.ActorAlign.CENTER,
 					});
 
-					tileBox.add_child(
-						new St.Icon({
-							icon_name: iconName,
-							icon_size: 30,
-							x_align: Clutter.ActorAlign.CENTER,
-							y_align: Clutter.ActorAlign.CENTER,
-							style_class: "system-status-icon",
-						})
-					);
+					const iconOnlyIcon = new St.Icon({
+						icon_name: iconName,
+						icon_size: 30,
+						x_align: Clutter.ActorAlign.CENTER,
+						y_align: Clutter.ActorAlign.CENTER,
+						style_class: "system-status-icon",
+					});
+
+					// Rotate Hibernate icon 90 degrees
+					if (labelText === "Hibernate") {
+						iconOnlyIcon.set_pivot_point(0.5, 0.5);
+						iconOnlyIcon.rotation_angle_z = 90;
+					}
+
+					tileBox.add_child(iconOnlyIcon);
 					tile.set_child(tileBox);
 					break;
-					
-				case 'label-only':
+
+				case "label-only":
 					tileBox = new St.BoxLayout({
 						style: "spacing: 0px;",
 						x_align: Clutter.ActorAlign.CENTER,
@@ -258,13 +299,13 @@ export class DialogManager {
 					);
 					tile.set_child(tileBox);
 					break;
-					
-				case 'label-with-icons':
+
+				case "label-with-icons":
 				default:
 					tileBox = new St.BoxLayout();
 
 					const labelContainer = new St.BoxLayout();
-					
+
 					const powerLabel = new St.Label({
 						text: labelText,
 						style_class: "tile-label",
@@ -288,8 +329,15 @@ export class DialogManager {
 						y_expand: true,
 						style_class: "power-option-icon",
 					});
+
+					// Rotate Hibernate icon 90 degrees
+					if (labelText === "Hibernate") {
+						icon.set_pivot_point(0.5, 0.5);
+						icon.rotation_angle_z = 90;
+					}
+
 					iconContainer.add_child(icon);
-					
+
 					tile.set_child(tileBox);
 					tile.add_child(labelContainer);
 					tile.add_child(iconContainer);
@@ -302,7 +350,7 @@ export class DialogManager {
 				this._dialog.close();
 			});
 
-			tile.connect('key-press-event', (actor, event) => {
+			tile.connect("key-press-event", (actor, event) => {
 				const key = event.get_key_symbol();
 
 				switch (key) {
@@ -356,6 +404,12 @@ export class DialogManager {
 			can_focus: false,
 		});
 
+		const thirdRow = new St.BoxLayout({
+			style: "spacing: 8px;",
+			x_expand: true,
+			can_focus: false,
+		});
+
 		firstRow.add_child(
 			createTile(
 				"Suspend",
@@ -366,13 +420,21 @@ export class DialogManager {
 		);
 		firstRow.add_child(
 			createTile(
+				"Lock",
+				this._iconMap["Lock"],
+				this._powerActions.lock.bind(this._powerActions),
+				"lock-tile"
+			)
+		);
+
+		secondRow.add_child(
+			createTile(
 				"Restart",
 				this._iconMap["Restart"],
 				this._powerActions.reboot.bind(this._powerActions),
 				"restart-tile"
 			)
 		);
-
 		secondRow.add_child(
 			createTile(
 				"Power Off",
@@ -381,7 +443,8 @@ export class DialogManager {
 				"poweroff-tile"
 			)
 		);
-		secondRow.add_child(
+
+		thirdRow.add_child(
 			createTile(
 				"Log Out",
 				this._iconMap["Log Out"],
@@ -389,9 +452,20 @@ export class DialogManager {
 				"logout-tile"
 			)
 		);
+		thirdRow.add_child(
+			createTile(
+				"Hibernate",
+				this._iconMap["Hibernate"],
+				() => {
+					// Placeholder - functionality to be implemented
+				},
+				"hibernate-tile"
+			)
+		);
 
 		gridContainer.add_child(firstRow);
 		gridContainer.add_child(secondRow);
+		gridContainer.add_child(thirdRow);
 
 		box.add_child(gridContainer);
 	}
@@ -402,7 +476,9 @@ export class DialogManager {
 		}
 
 		if (this._tiles[this._currentTileIndex]) {
-			this._tiles[this._currentTileIndex].remove_style_class_name('focused-tile');
+			this._tiles[this._currentTileIndex].remove_style_class_name(
+				"focused-tile"
+			);
 		}
 
 		let newIndex = this._currentTileIndex + direction;
@@ -417,7 +493,9 @@ export class DialogManager {
 
 		if (this._tiles[this._currentTileIndex]) {
 			this._tiles[this._currentTileIndex].grab_key_focus();
-			this._tiles[this._currentTileIndex].add_style_class_name('focused-tile');
+			this._tiles[this._currentTileIndex].add_style_class_name(
+				"focused-tile"
+			);
 		}
 	}
 
@@ -427,28 +505,47 @@ export class DialogManager {
 		}
 
 		const tilesPerRow = 2;
+		const totalRows = Math.ceil(this._tiles.length / tilesPerRow);
 		const currentRow = Math.floor(this._currentTileIndex / tilesPerRow);
 		const currentCol = this._currentTileIndex % tilesPerRow;
 
 		if (this._tiles[this._currentTileIndex]) {
-			this._tiles[this._currentTileIndex].remove_style_class_name('focused-tile');
+			this._tiles[this._currentTileIndex].remove_style_class_name(
+				"focused-tile"
+			);
 		}
 
 		let targetIndex;
 
-		if (direction === -1) { // Up
-			if (currentRow === 0) {
-				// Wrap to bottom row, same column
-				targetIndex = (1 * tilesPerRow) + currentCol;
-			} else {
-				targetIndex = (currentRow - 1) * tilesPerRow + currentCol;
+		if (direction === -1) {
+			// Up
+			let targetRow = currentRow - 1;
+			if (targetRow < 0) {
+				// Wrap to bottom row
+				targetRow = totalRows - 1;
 			}
-		} else { // Down
-			if (currentRow === 1) {
-				// Wrap to top row, same column
-				targetIndex = (0 * tilesPerRow) + currentCol;
-			} else {
-				targetIndex = (currentRow + 1) * tilesPerRow + currentCol;
+
+			// Calculate target index
+			targetIndex = targetRow * tilesPerRow + currentCol;
+
+			// If target index exceeds tile count, adjust to last tile in that row
+			if (targetIndex >= this._tiles.length) {
+				targetIndex = this._tiles.length - 1;
+			}
+		} else {
+			// Down
+			let targetRow = currentRow + 1;
+			if (targetRow >= totalRows) {
+				// Wrap to top row
+				targetRow = 0;
+			}
+
+			// Calculate target index
+			targetIndex = targetRow * tilesPerRow + currentCol;
+
+			// If target index exceeds tile count, adjust to last tile in that row
+			if (targetIndex >= this._tiles.length) {
+				targetIndex = this._tiles.length - 1;
 			}
 		}
 
@@ -456,7 +553,9 @@ export class DialogManager {
 
 		if (this._tiles[this._currentTileIndex]) {
 			this._tiles[this._currentTileIndex].grab_key_focus();
-			this._tiles[this._currentTileIndex].add_style_class_name('focused-tile');
+			this._tiles[this._currentTileIndex].add_style_class_name(
+				"focused-tile"
+			);
 		}
 	}
 

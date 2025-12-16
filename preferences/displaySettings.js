@@ -48,7 +48,10 @@ export class DisplaySettings {
 		topBarIconRow.add_suffix(topBarIconToggle);
 
 		topBarIconToggle.connect("notify::active", () => {
-			this._settings.set_boolean("show-top-bar-icon", topBarIconToggle.get_active());
+			this._settings.set_boolean(
+				"show-top-bar-icon",
+				topBarIconToggle.get_active()
+			);
 		});
 
 		return topBarIconRow;
@@ -67,7 +70,8 @@ export class DisplaySettings {
 		tiledDisplayModeModel.append("Label Only");
 		tiledDisplayModeRow.set_model(tiledDisplayModeModel);
 
-		const currentTiledDisplayMode = this._settings.get_string("tiled-display-mode");
+		const currentTiledDisplayMode =
+			this._settings.get_string("tiled-display-mode");
 		if (currentTiledDisplayMode === "label-with-icons") {
 			tiledDisplayModeRow.set_selected(0);
 		} else if (currentTiledDisplayMode === "icons-only") {

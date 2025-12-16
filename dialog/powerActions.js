@@ -22,9 +22,11 @@ export class PowerActions {
 	}
 
 	logout() {
-		const confirmationMode = this._settings.get_string("logout-confirmation");
+		const confirmationMode = this._settings.get_string(
+			"logout-confirmation"
+		);
 		const mode = confirmationMode === "immediate" ? 2 : 0;
-		
+
 		Gio.DBus.session.call(
 			"org.gnome.SessionManager",
 			"/org/gnome/SessionManager",
@@ -40,8 +42,10 @@ export class PowerActions {
 	}
 
 	reboot() {
-		const confirmationMode = this._settings.get_string("restart-confirmation");
-		
+		const confirmationMode = this._settings.get_string(
+			"restart-confirmation"
+		);
+
 		if (confirmationMode === "immediate") {
 			this._callLogind("Reboot", false);
 		} else {
@@ -61,8 +65,10 @@ export class PowerActions {
 	}
 
 	powerOff() {
-		const confirmationMode = this._settings.get_string("poweroff-confirmation");
-		
+		const confirmationMode = this._settings.get_string(
+			"poweroff-confirmation"
+		);
+
 		if (confirmationMode === "immediate") {
 			this._callLogind("PowerOff", false);
 		} else {
@@ -83,5 +89,20 @@ export class PowerActions {
 
 	suspend() {
 		this._callLogind("Suspend", true);
+	}
+
+	lock() {
+		Gio.DBus.session.call(
+			"org.gnome.ScreenSaver",
+			"/org/gnome/ScreenSaver",
+			"org.gnome.ScreenSaver",
+			"Lock",
+			null,
+			null,
+			Gio.DBusCallFlags.NONE,
+			-1,
+			null,
+			null
+		);
 	}
 }

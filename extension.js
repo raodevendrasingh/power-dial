@@ -22,14 +22,22 @@ export default class PowerDialExtension extends Extension {
 		this._settings = this.getSettings();
 
 		this._powerActions = new PowerActions(this._settings);
-		this._keybindingManager = new KeybindingManager(this._settings, this._showPowerMenu.bind(this));
-		this._dialogManager = new DialogManager(this._settings, this._powerActions);
-		this._indicatorManager = new IndicatorManager(this._settings, this._showPowerMenu.bind(this));
+		this._keybindingManager = new KeybindingManager(
+			this._settings,
+			this._showPowerMenu.bind(this)
+		);
+		this._dialogManager = new DialogManager(
+			this._settings,
+			this._powerActions
+		);
+		this._indicatorManager = new IndicatorManager(
+			this._settings,
+			this._showPowerMenu.bind(this)
+		);
 
 		this._keybindingManager.registerWithDelay();
 		this._indicatorManager.setup();
 	}
-
 
 	disable() {
 		if (this._keybindingManager) {
@@ -50,5 +58,4 @@ export default class PowerDialExtension extends Extension {
 		this._powerActions = null;
 		this._settings = null;
 	}
-
 }

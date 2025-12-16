@@ -15,7 +15,7 @@ export class IndicatorManager {
 
 		let icon = new St.Icon({
 			icon_name: "system-shutdown-symbolic",
-			style_class: "system-status-icon"
+			style_class: "system-status-icon",
 		});
 
 		this._indicator.add_child(icon);
@@ -43,9 +43,12 @@ export class IndicatorManager {
 			this._createIndicator();
 		}
 
-		this._settingsConnectionId = this._settings.connect("changed::show-top-bar-icon", () => {
-			this._handleTopBarIconSettingChanged();
-		});
+		this._settingsConnectionId = this._settings.connect(
+			"changed::show-top-bar-icon",
+			() => {
+				this._handleTopBarIconSettingChanged();
+			}
+		);
 	}
 
 	destroy() {

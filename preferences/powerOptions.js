@@ -18,7 +18,9 @@ export class PowerOptions {
 		restartModel.append("Immediate");
 		restartRow.set_model(restartModel);
 
-		const currentRestartMode = this._settings.get_string("restart-confirmation");
+		const currentRestartMode = this._settings.get_string(
+			"restart-confirmation"
+		);
 		if (currentRestartMode === "confirm") {
 			restartRow.set_selected(0);
 		} else if (currentRestartMode === "immediate") {
@@ -46,7 +48,9 @@ export class PowerOptions {
 		powerOffModel.append("Immediate");
 		powerOffRow.set_model(powerOffModel);
 
-		const currentPowerOffMode = this._settings.get_string("poweroff-confirmation");
+		const currentPowerOffMode = this._settings.get_string(
+			"poweroff-confirmation"
+		);
 		if (currentPowerOffMode === "confirm") {
 			powerOffRow.set_selected(0);
 		} else if (currentPowerOffMode === "immediate") {
@@ -74,7 +78,9 @@ export class PowerOptions {
 		logoutModel.append("Immediate");
 		logoutRow.set_model(logoutModel);
 
-		const currentLogoutMode = this._settings.get_string("logout-confirmation");
+		const currentLogoutMode = this._settings.get_string(
+			"logout-confirmation"
+		);
 		if (currentLogoutMode === "confirm") {
 			logoutRow.set_selected(0);
 		} else if (currentLogoutMode === "immediate") {
@@ -90,4 +96,3 @@ export class PowerOptions {
 		return logoutRow;
 	}
 }
-
