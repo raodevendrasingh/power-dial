@@ -26,7 +26,7 @@ export default class PowerDialExtension extends Extension {
 		this._dialogManager = new DialogManager(this._settings, this._powerActions);
 		this._indicatorManager = new IndicatorManager(this._settings, this._showPowerMenu.bind(this));
 
-		this._keybindingManager._registerKeybinding();
+		this._keybindingManager.registerWithDelay();
 		this._indicatorManager.setup();
 	}
 
