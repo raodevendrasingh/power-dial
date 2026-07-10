@@ -17,10 +17,9 @@ export class KeybindingManager {
 		const retryDelay = 1000;
 
 		try {
-			try {
+			if (this._keybindingId) {
 				Main.wm.removeKeybinding("shortcut");
-			} catch (e) {
-				// Ignore if doesn't exist
+				this._keybindingId = null;
 			}
 
 			this._keybindingId = Main.wm.addKeybinding(
@@ -84,11 +83,7 @@ export class KeybindingManager {
 		}
 
 		if (this._keybindingId) {
-			try {
-				Main.wm.removeKeybinding("shortcut");
-			} catch (error) {
-				// Error removing keybinding - silently continue
-			}
+			Main.wm.removeKeybinding("shortcut");
 			this._keybindingId = null;
 		}
 	}
