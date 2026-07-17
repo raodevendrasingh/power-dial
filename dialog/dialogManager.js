@@ -16,17 +16,22 @@ export class DialogManager {
 
 	_iconMap = {
 		"Suspend": "media-playback-pause-symbolic",
-		"Restart": "system-reboot-symbolic", 
+		"Restart": "system-reboot-symbolic",
 		"Power Off": "system-shutdown-symbolic",
-		"Log Out": "system-log-out-symbolic"
+		"Log Out": "system-log-out-symbolic",
 	};
 
 	_showPowerMenu() {
+		// Toggle closed if already open
 		if (this._isDialogOpen) {
+			if (this._dialog)
+				this._dialog.close();
+			else
+				this._isDialogOpen = false;
 			return;
 		}
 
-		let dialog = new ModalDialog.ModalDialog({
+		const dialog = new ModalDialog.ModalDialog({
 			styleClass: "power-dial-dialog",
 		});
 
@@ -34,7 +39,7 @@ export class DialogManager {
 		this._isDialogOpen = true;
 
 		const box = new St.BoxLayout({
-			vertical: true,
+			orientation: Clutter.Orientation.VERTICAL,
 			x_expand: true,
 			style_class: "power-dial-box",
 			can_focus: false,
@@ -51,19 +56,27 @@ export class DialogManager {
 
 		this._renderDialogView(box);
 
-		if (this._settings.get_string("view-mode") === "tiled" && this._tiles && this._tiles.length > 0) {
+		if (
+			this._settings.get_string("view-mode") === "tiled" &&
+			this._tiles &&
+			this._tiles.length > 0
+		) {
 			if (this._focusTimeoutId) {
 				GLib.source_remove(this._focusTimeoutId);
 				this._focusTimeoutId = null;
 			}
-			this._focusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 50, () => {
-				if (this._tiles[0]) {
-					this._tiles[0].grab_key_focus();
-					this._tiles[0].add_style_class_name('focused-tile');
+			this._focusTimeoutId = GLib.timeout_add(
+				GLib.PRIORITY_DEFAULT,
+				50,
+				() => {
+					if (this._tiles?.[0]) {
+						this._tiles[0].grab_key_focus();
+						this._tiles[0].add_style_class_name("focused-tile");
+					}
+					this._focusTimeoutId = null;
+					return GLib.SOURCE_REMOVE;
 				}
-				this._focusTimeoutId = null;
-				return GLib.SOURCE_REMOVE;
-			});
+			);
 		}
 
 		dialog.setButtons([
@@ -79,15 +92,21 @@ export class DialogManager {
 			this._dialog = null;
 			this._isDialogOpen = false;
 			if (this._tiles) {
-				this._tiles.forEach(tile => {
-					tile.remove_style_class_name('focused-tile');
+				this._tiles.forEach((tile) => {
+					tile.remove_style_class_name("focused-tile");
 				});
 			}
 			this._tiles = null;
 			this._currentTileIndex = 0;
 		});
 
-		dialog.open();
+		// open() returns false when the modal grab cannot be taken; clear the
+		// latch so a later activation can try again.
+		if (!dialog.open()) {
+			this._dialog = null;
+			this._isDialogOpen = false;
+			dialog.destroy();
+		}
 	}
 
 	_renderDialogView(box) {
@@ -105,7 +124,6 @@ export class DialogManager {
 	}
 
 	_renderStackedView(box) {
-
 		const createButton = (labelText, iconName, action, styleClass) => {
 			const button = new St.Button({
 				style_class: `button ${styleClass || ""}`,
@@ -113,11 +131,11 @@ export class DialogManager {
 				can_focus: true,
 				x_expand: true,
 			});
-			
+
 			const buttonBox = new St.BoxLayout({
 				style: "spacing: 0; padding: 0;",
 			});
-			
+
 			const labelContainer = new St.BoxLayout({
 				style: "padding: 0;",
 				width: 256,
@@ -131,7 +149,7 @@ export class DialogManager {
 			});
 			labelContainer.add_child(powerLabel);
 			buttonBox.add_child(labelContainer);
-			
+
 			const iconContainer = new St.BoxLayout({
 				style_class: "power-option-icon-container",
 				width: 44,
@@ -149,15 +167,15 @@ export class DialogManager {
 				style_class: "power-option-icon",
 			});
 			iconContainer.add_child(icon);
-			
+
 			button.set_child(buttonBox);
-			
+
 			button.add_child(iconContainer);
 			iconContainer.x = 258;
 			iconContainer.y = 2;
 			button.connect("clicked", () => {
 				action();
-				this._dialog.close();
+				this._dialog?.close();
 			});
 			return button;
 		};
@@ -204,14 +222,14 @@ export class DialogManager {
 
 		const createTile = (labelText, iconName, action, styleClass) => {
 			let tileClass;
-			if (tiledDisplayMode === 'icons-only') {
-				tileClass = 'tile-icons-only';
-			} else if (tiledDisplayMode === 'label-only') {
-				tileClass = 'tile-label-only';
+			if (tiledDisplayMode === "icons-only") {
+				tileClass = "tile-icons-only";
+			} else if (tiledDisplayMode === "label-only") {
+				tileClass = "tile-label-only";
 			} else {
-				tileClass = 'tile-label-with-icons';
+				tileClass = "tile-label-with-icons";
 			}
-			
+
 			const tile = new St.Button({
 				style_class: `${tileClass} ${styleClass || ""}`,
 				can_focus: true,
@@ -220,9 +238,9 @@ export class DialogManager {
 			});
 
 			let tileBox;
-			
+
 			switch (tiledDisplayMode) {
-				case 'icons-only':
+				case "icons-only":
 					tileBox = new St.BoxLayout({
 						style: "spacing: 0px;",
 						x_align: Clutter.ActorAlign.CENTER,
@@ -240,8 +258,8 @@ export class DialogManager {
 					);
 					tile.set_child(tileBox);
 					break;
-					
-				case 'label-only':
+
+				case "label-only":
 					tileBox = new St.BoxLayout({
 						style: "spacing: 0px;",
 						x_align: Clutter.ActorAlign.CENTER,
@@ -258,13 +276,13 @@ export class DialogManager {
 					);
 					tile.set_child(tileBox);
 					break;
-					
-				case 'label-with-icons':
+
+				case "label-with-icons":
 				default:
 					tileBox = new St.BoxLayout();
 
 					const labelContainer = new St.BoxLayout();
-					
+
 					const powerLabel = new St.Label({
 						text: labelText,
 						style_class: "tile-label",
@@ -289,7 +307,7 @@ export class DialogManager {
 						style_class: "power-option-icon",
 					});
 					iconContainer.add_child(icon);
-					
+
 					tile.set_child(tileBox);
 					tile.add_child(labelContainer);
 					tile.add_child(iconContainer);
@@ -299,10 +317,10 @@ export class DialogManager {
 			}
 			tile.connect("clicked", () => {
 				action();
-				this._dialog.close();
+				this._dialog?.close();
 			});
 
-			tile.connect('key-press-event', (actor, event) => {
+			tile.connect("key-press-event", (_actor, event) => {
 				const key = event.get_key_symbol();
 
 				switch (key) {
@@ -325,7 +343,7 @@ export class DialogManager {
 					case Clutter.KEY_Return:
 					case Clutter.KEY_KP_Enter:
 						action();
-						this._dialog.close();
+						this._dialog?.close();
 						return Clutter.EVENT_STOP;
 				}
 
@@ -338,7 +356,7 @@ export class DialogManager {
 		};
 
 		const gridContainer = new St.BoxLayout({
-			vertical: true,
+			orientation: Clutter.Orientation.VERTICAL,
 			style: "spacing: 8px; margin-top: 10px;",
 			x_expand: true,
 			can_focus: false,
@@ -402,7 +420,9 @@ export class DialogManager {
 		}
 
 		if (this._tiles[this._currentTileIndex]) {
-			this._tiles[this._currentTileIndex].remove_style_class_name('focused-tile');
+			this._tiles[this._currentTileIndex].remove_style_class_name(
+				"focused-tile"
+			);
 		}
 
 		let newIndex = this._currentTileIndex + direction;
@@ -417,7 +437,9 @@ export class DialogManager {
 
 		if (this._tiles[this._currentTileIndex]) {
 			this._tiles[this._currentTileIndex].grab_key_focus();
-			this._tiles[this._currentTileIndex].add_style_class_name('focused-tile');
+			this._tiles[this._currentTileIndex].add_style_class_name(
+				"focused-tile"
+			);
 		}
 	}
 
@@ -431,22 +453,24 @@ export class DialogManager {
 		const currentCol = this._currentTileIndex % tilesPerRow;
 
 		if (this._tiles[this._currentTileIndex]) {
-			this._tiles[this._currentTileIndex].remove_style_class_name('focused-tile');
+			this._tiles[this._currentTileIndex].remove_style_class_name(
+				"focused-tile"
+			);
 		}
 
 		let targetIndex;
 
-		if (direction === -1) { // Up
+		if (direction === -1) {
+			// Up
 			if (currentRow === 0) {
-				// Wrap to bottom row, same column
-				targetIndex = (1 * tilesPerRow) + currentCol;
+				targetIndex = 1 * tilesPerRow + currentCol;
 			} else {
 				targetIndex = (currentRow - 1) * tilesPerRow + currentCol;
 			}
-		} else { // Down
+		} else {
+			// Down
 			if (currentRow === 1) {
-				// Wrap to top row, same column
-				targetIndex = (0 * tilesPerRow) + currentCol;
+				targetIndex = 0 * tilesPerRow + currentCol;
 			} else {
 				targetIndex = (currentRow + 1) * tilesPerRow + currentCol;
 			}
@@ -456,7 +480,9 @@ export class DialogManager {
 
 		if (this._tiles[this._currentTileIndex]) {
 			this._tiles[this._currentTileIndex].grab_key_focus();
-			this._tiles[this._currentTileIndex].add_style_class_name('focused-tile');
+			this._tiles[this._currentTileIndex].add_style_class_name(
+				"focused-tile"
+			);
 		}
 	}
 

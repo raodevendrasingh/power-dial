@@ -14,22 +14,29 @@ export default class PowerDialExtension extends Extension {
 		this._indicatorManager = null;
 	}
 
+	// Underscore is our module convention for internal methods (not a GNOME
+	// Shell private API). DialogManager uses the same naming for its entry point.
 	_showPowerMenu() {
-		this._dialogManager._showPowerMenu();
+		this._dialogManager?._showPowerMenu();
 	}
 
 	enable() {
 		this._settings = this.getSettings();
 
 		this._powerActions = new PowerActions(this._settings);
-		this._keybindingManager = new KeybindingManager(this._settings, this._showPowerMenu.bind(this));
 		this._dialogManager = new DialogManager(this._settings, this._powerActions);
-		this._indicatorManager = new IndicatorManager(this._settings, this._showPowerMenu.bind(this));
+		this._keybindingManager = new KeybindingManager(
+			this._settings,
+			this._showPowerMenu.bind(this)
+		);
+		this._indicatorManager = new IndicatorManager(
+			this._settings,
+			this._showPowerMenu.bind(this)
+		);
 
-		this._keybindingManager.registerWithDelay();
+		this._keybindingManager.register();
 		this._indicatorManager.setup();
 	}
-
 
 	disable() {
 		if (this._keybindingManager) {
@@ -50,5 +57,4 @@ export default class PowerDialExtension extends Extension {
 		this._powerActions = null;
 		this._settings = null;
 	}
-
 }

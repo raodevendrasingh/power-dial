@@ -1,94 +1,54 @@
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import Meta from "gi://Meta";
 import Shell from "gi://Shell";
-import GLib from "gi://GLib";
+
+const KEYBINDING_NAME = "shortcut";
 
 export class KeybindingManager {
 	constructor(settings, showPowerMenuCallback) {
 		this._settings = settings;
 		this._showPowerMenuCallback = showPowerMenuCallback;
-		this._keybindingId = null;
-		this._keybindingRetryTimeoutId = null;
-		this._initialDelayTimeoutId = null;
+		this._settingsChangedId = null;
 	}
 
-	_registerKeybinding(retryCount = 0) {
-		const maxRetries = 5;
-		const retryDelay = 1000;
-
-		try {
-			if (this._keybindingId) {
-				Main.wm.removeKeybinding("shortcut");
-				this._keybindingId = null;
-			}
-
-			this._keybindingId = Main.wm.addKeybinding(
-				"shortcut",
-				this._settings,
-				Meta.KeyBindingFlags.NONE,
-				Shell.ActionMode.ALL,
-				this._showPowerMenuCallback
-			);
-
-			if (!this._keybindingId) {
-				throw new Error(
-					"Keybinding registration returned null/undefined"
-				);
-			}
-		} catch (error) {
-			if (retryCount < maxRetries) {
-				if (this._keybindingRetryTimeoutId) {
-					GLib.source_remove(this._keybindingRetryTimeoutId);
-					this._keybindingRetryTimeoutId = null;
-				}
-				this._keybindingRetryTimeoutId = GLib.timeout_add(
-					GLib.PRIORITY_DEFAULT,
-					retryDelay,
-					() => {
-						this._registerKeybinding(retryCount + 1);
-						this._keybindingRetryTimeoutId = null;
-						return GLib.SOURCE_REMOVE;
-					}
-				);
-			}
-		}
+	_unregister() {
+		Main.wm.removeKeybinding(KEYBINDING_NAME);
 	}
 
-	registerWithDelay(delay = 200) {
-		if (this._initialDelayTimeoutId) {
-			GLib.source_remove(this._initialDelayTimeoutId);
-			this._initialDelayTimeoutId = null;
-		}
+	_registerKeybinding() {
+		// Always remove first so re-enable / settings changes never hit
+		// mutter's "Trying to re-add keybinding" path.
+		this._unregister();
 
-		this._initialDelayTimeoutId = GLib.timeout_add(
-			GLib.PRIORITY_DEFAULT,
-			delay,
-			() => {
-				this._registerKeybinding();
-				this._initialDelayTimeoutId = null;
-				return GLib.SOURCE_REMOVE;
-			}
+		const action = Main.wm.addKeybinding(
+			KEYBINDING_NAME,
+			this._settings,
+			Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
+			Shell.ActionMode.ALL,
+			this._showPowerMenuCallback
 		);
+
+		if (action === Meta.KeyBindingAction.NONE)
+			console.error("[Power Dial] Failed to register keybinding");
+	}
+
+	register() {
+		this._registerKeybinding();
+
+		if (!this._settingsChangedId) {
+			this._settingsChangedId = this._settings.connect(
+				`changed::${KEYBINDING_NAME}`,
+				() => this._registerKeybinding()
+			);
+		}
 	}
 
 	destroy() {
-		if (this._initialDelayTimeoutId) {
-			GLib.source_remove(this._initialDelayTimeoutId);
-			this._initialDelayTimeoutId = null;
+		if (this._settingsChangedId) {
+			this._settings.disconnect(this._settingsChangedId);
+			this._settingsChangedId = null;
 		}
 
-		if (this._keybindingRetryTimeoutId) {
-			GLib.source_remove(this._keybindingRetryTimeoutId);
-			this._keybindingRetryTimeoutId = null;
-		}
-
-		if (this._keybindingId) {
-			Main.wm.removeKeybinding("shortcut");
-			this._keybindingId = null;
-		}
-	}
-
-	get keybindingId() {
-		return this._keybindingId;
+		this._unregister();
 	}
 }
