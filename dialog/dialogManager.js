@@ -3,6 +3,13 @@ import GLib from "gi://GLib";
 import Clutter from "gi://Clutter";
 import * as ModalDialog from "resource:///org/gnome/shell/ui/modalDialog.js";
 
+// St.BoxLayout gained the `orientation` property in GNOME 48 and dropped the
+// legacy `vertical` boolean in GNOME 50. Detect once which one the running
+// shell supports so the dialog builds cleanly on GNOME 45 through 50.
+const VERTICAL_BOX_PROPS = "orientation" in St.BoxLayout.prototype
+	? { orientation: Clutter.Orientation.VERTICAL }
+	: { vertical: true };
+
 export class DialogManager {
 	constructor(settings, powerActions) {
 		this._settings = settings;
@@ -39,7 +46,7 @@ export class DialogManager {
 		this._isDialogOpen = true;
 
 		const box = new St.BoxLayout({
-			orientation: Clutter.Orientation.VERTICAL,
+			...VERTICAL_BOX_PROPS,
 			x_expand: true,
 			style_class: "power-dial-box",
 			can_focus: false,
@@ -356,7 +363,7 @@ export class DialogManager {
 		};
 
 		const gridContainer = new St.BoxLayout({
-			orientation: Clutter.Orientation.VERTICAL,
+			...VERTICAL_BOX_PROPS,
 			style: "spacing: 8px; margin-top: 10px;",
 			x_expand: true,
 			can_focus: false,
